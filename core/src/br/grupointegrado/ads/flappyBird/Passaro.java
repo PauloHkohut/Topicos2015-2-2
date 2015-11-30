@@ -3,6 +3,9 @@ package br.grupointegrado.ads.flappyBird;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
@@ -20,12 +23,15 @@ public class Passaro {
     private final OrthographicCamera camera;
     private final Texture[] texturas;
     private Body corpo;
+    private Sprite sprite;
+    private int estagio = 0;
 
     public Passaro(World mundo, OrthographicCamera camera, Texture[] texturas){
 
-        this.mundo = mundo;
-        this.camera = camera;
+        this.mundo    = mundo;
+        this.camera   = camera;
         this.texturas = texturas;
+        this.sprite   = new Sprite(texturas[0]);
 
         initCorpo();
     }
@@ -61,8 +67,45 @@ public class Passaro {
             atualizarVelocidade();
             atualizarRotacao();
         }
+        atualizarEstagio(delta);
 
     }
+
+
+    private float tempoEstagio = 0;
+    /**
+     * Movimento das asas
+     *
+     * @param delta
+     */
+    private void atualizarEstagio(float delta) {
+        if (corpo.getLinearVelocity().y < 0){
+
+            //caindo
+            estagio = 1;
+
+        }else {
+
+            //parado pu subindo
+            tempoEstagio += delta;
+            if (tempoEstagio > 0.1){
+                tempoEstagio = 0;
+                estagio++;
+
+                //zerar para nao entrar na estagio 3
+                if (estagio >= 3){
+                    estagio = 0;
+                }
+
+            }
+        }
+    }
+
+
+
+
+
+
 
 
     private void atualizarRotacao() {
@@ -111,7 +154,17 @@ public class Passaro {
 
 
     public Body getCorpo(){
+
         return corpo;
+    }
+
+    public  void renderizar(SpriteBatch pincel){
+        Vector2 posicao = corpo.getPosition();
+        sprite.setTexture(texturas[estagio]);
+        sprite.setPosition(posicao.x * Util.PIXEL_METRO, posicao.y * Util.PIXEL_METRO);
+        sprite.setOrigin(0, 0);
+        sprite.setRotation((float) Math.toDegrees(corpo.getAngle()));
+        sprite.draw(pincel);
     }
 
 }
